@@ -16,6 +16,7 @@ setup(
         license='MIT',
         packages=['migrator', 'migrator.migrations', 'migrator.providers'],
         zip_safe=False,
+        include_package_data=True,
         install_requires=['boto3',
                           'azure-storage',
                           'azure-nspkg',
