@@ -5,7 +5,6 @@ def readme():
         return f.read()
 
 setup(
-    entry_points={
         name='migrate-to-azure',
         version='0.1',
         description='Migrate buckets from s3 to azure as blob containers',
@@ -17,4 +16,4 @@ setup(
         packages=['boto3', 'azure-sdk-for-python', 'click', 'tqdm', 'python-json-logger'],
         zip_safe=True,
         install_requires=['boto3', 'azure-sdk-for-python', 'click', 'tqdm', 'python-json-logger'],
-        entry_points={'console_scripts': ['migrate-to-azure=migrator.commandline:main']}})
+        entry_points={'console_scripts': ['migrate-to-azure=migrator.commandline:main']})
