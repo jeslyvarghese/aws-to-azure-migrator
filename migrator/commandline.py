@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import click
-from migrations import ToAzureFromAWS
+from migrations.azure import ToAzureFromAWS
 
 @click.command()
 @click.option('--azure-storage-account', default=None, help='Azure Storage Account Name (Required)')
@@ -15,7 +15,4 @@ def run(azure_storage_account, azure_storage_key, aws_region_name, aws_access_ke
                    aws_region_name=aws_region_name,
                    aws_access_key=aws_access_key,
                    aws_secret_key=aws_secret_key).migrate()
-
-if __name__ == '__main__':
-    run()
 
