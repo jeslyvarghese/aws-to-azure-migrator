@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
 import click
-from migrator.migrations.azure import ToAzureFromAWS
+from migrations.azure import ToAzureFromAWS
 
 @click.command()
 @click.option('--azure-storage-account', default=None, help='Azure Storage Account Name (Required)')
