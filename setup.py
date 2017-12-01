@@ -13,7 +13,7 @@ setup(
         author='Jesly Varghese',
         author_email='jesly.varghese@gmail.com',
         license='MIT',
-        packages=['boto3', 'azure-sdk-for-python', 'click', 'tqdm', 'python-json-logger'],
+        packages=['migrator'],
         zip_safe=True,
         install_requires=['boto3', 'azure-sdk-for-python', 'click', 'tqdm', 'python-json-logger'],
         entry_points={'console_scripts': ['migrate-to-azure=migrator.commandline:main']})
