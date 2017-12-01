@@ -14,6 +14,6 @@ setup(
         author_email='jesly.varghese@gmail.com',
         license='MIT',
         packages=['migrator', 'migrator.migrations', 'migrator.providers'],
-        zip_safe=True,
+        zip_safe=False,
         install_requires=['boto3', 'azure-storage', 'azure-nspkg', 'cryptography', 'ipaddress',  'click', 'tqdm', 'python-json-logger'],
         entry_points={'console_scripts': ['migrate-to-azure=migrator.commandline:run']})
