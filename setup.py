@@ -5,6 +5,9 @@ def readme():
     with open('README.rst') as f:
         return f.read()
 
+with open('requirements.txt', 'r') as f:
+    requirements = f.readlines()
+
 setup(
         name='migrate-to-azure',
         version='0.1',
@@ -17,17 +20,5 @@ setup(
         packages=['migrator', 'migrator.migrations', 'migrator.providers'],
         zip_safe=False,
         include_package_data=True,
-        install_requires=['boto3',
-                          'azure-storage',
-                          'azure-nspkg',
-                          'cryptography',
-                          'azure-common>=1.1.5',
-                          'cryptography',
-                          'python-dateutil',
-                          'requests',
-                          'azure-storage-common>=0.37.1,<0.38.0',
-                          'ipaddress', 
-                          'click',
-                          'tqdm',
-                          'python-json-logger'],
+        install_requires=requirements,
         entry_points={'console_scripts': ['migrate-to-azure=migrator.commandline:run']})
