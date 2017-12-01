@@ -36,6 +36,8 @@ class TestAzureContainer(unittest.TestCase, TestAttributes):
         self.blob_storage = AzureBlobStorage(
             storage_account_name=self.account_name,
             storage_key=self.storage_key)
+        self.blob_storage.service.delete_container(container_name=self.container_name)
+        time.sleep(10)
         self.blob_storage.create_container(container_name=self.container_name, public_access=AzureBlobStorage.PUBLIC_ACCESS_CONTAINER)
         time.sleep(10)
         self.filepath = "/tmp/testfile.txt"

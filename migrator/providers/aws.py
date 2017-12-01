@@ -1,6 +1,7 @@
 from __future__ import absolute_import
+import boto3
 from boto3 import s3
-
+from boto3.s3.transfer import TransferConfig
 
 class Boto3Session(object):
     S3 = 's3'
@@ -26,14 +27,14 @@ class S3(object):
 
     def list_buckets(self):
         buckets = []
-        b_resp_dict = self.client_list_buckets()
-        owner = BucketOwner(name=b_resp_dict[OWNER_KEY]['DisplayName'], identifier=resp_dict[OWNER_KEY]['ID'])
-        bucket_list = b_resp_dict[BUCKETS_KEY]
+        b_resp_dict = self.client.list_buckets()
+        owner = BucketOwner(name=b_resp_dict[S3.OWNER_KEY].get('DisplayName', None), identifier=b_resp_dict[S3.OWNER_KEY].get('ID', None))
+        bucket_list = b_resp_dict[S3.BUCKETS_KEY]
         for b in bucket_list:
             buckets.append(Bucket(
                 s3=self,
-                name=b[BUCKEY_NAME_KEY],
-                creation_date=b[BUCKET_CREATION_DATE_KEY],
+                name=b[S3.BUCKET_NAME_KEY],
+                creation_date=b[S3.BUCKET_CREATION_DATE_KEY],
                 owner=owner))
         return buckets
             
@@ -49,14 +50,14 @@ class Bucket(object):
     def list_objects(self):
         list_response = self.s3.client.list_objects(Bucket=self.name)
         is_list_truncated = list_response['IsTruncated']
-        contents = list_response['Contents']
+        contents = list_response.get('Contents', [])
         if is_list_truncated:
             next_marker = list_response['NextMarker']
             while next_marker is not None:
                 list_response = self.s3.client.list_objects(Bucket=self.name, Marker=next_marker)
                 next_marker = list_response['NextMarker']
                 contents.append(list_response['Contents'])
-        buckets_objects = []
+        bucket_objects = []
         for item in contents:
             bucket_objects.append(BucketObject(
                 bucket=self,
@@ -85,5 +86,6 @@ class BucketObject(object):
         self.storage_class=storage_class
         self.owner = owner
 
-    def download(self, filepath):
-        self.bucket.s3.client.download_file(Bucket=self.bucket.name, Key=self.key, FileName=self.filepath)
+    def download(self, filepath, callback=None):
+        transfer_config = TransferConfig(use_threads=False)
+        self.bucket.s3.client.download_file(Bucket=self.bucket.name, Key=self.key, Filename=filepath, Callback=callback, Config=transfer_config)

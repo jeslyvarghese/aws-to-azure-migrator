@@ -2,6 +2,9 @@ from __future__ import absolute_import
 from azure import storage
 import os
 
+class AzureContainerCreationFailedException(Exception):
+    pass
+
 class AzureBlobStorage(object):
     PUBLIC_ACCESS_BLOB = 'blob'
     PUBLIC_ACCESS_CONTAINER = 'container'
@@ -11,7 +14,8 @@ class AzureBlobStorage(object):
         self.service = self.client.create_block_blob_service()
     
     def create_container(self, container_name, public_access):
-        self.service.create_container(container_name, public_access=public_access)
+        if not self.service.create_container(container_name, public_access=public_access):
+            raise AzureContainerCreationFailedException()
 
 class AzureContainer(object):
     def __init__(self, name, blob_storage):
