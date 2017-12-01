@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 
-from providers.azure import AzureBlobStorage
-from providers.azure import AzureContainer
-from providers.azure import AzureContainerCreationFailedException
+from migrator.providers.azure import AzureBlobStorage
+from migrator.providers.azure import AzureContainer
+from migrator.providers.azure import AzureContainerCreationFailedException
 
-from providers.aws import Boto3Session
-from providers.aws import S3
-from providers.aws import Bucket
-from providers.aws import BucketObject
+from migrator.providers.aws import Boto3Session
+from migrator.providers.aws import S3
+from migrator.providers.aws import Bucket
+from migrator.providers.aws import BucketObject
 
 import logging
 
