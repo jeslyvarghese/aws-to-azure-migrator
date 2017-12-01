@@ -15,5 +15,5 @@ setup(
         license='MIT',
         packages=['migrator', 'migrator.migrations', 'migrator.providers'],
         zip_safe=True,
-        install_requires=['boto3', 'azure==2.0.0', 'click', 'tqdm', 'python-json-logger'],
+        install_requires=['boto3', 'click', 'tqdm', 'python-json-logger'],
         entry_points={'console_scripts': ['migrate-to-azure=migrator.commandline:run']})
