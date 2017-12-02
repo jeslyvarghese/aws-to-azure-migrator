@@ -55,7 +55,7 @@ class ToAzureFromAWS(object):
         self.bucket_items_count = {}
         self.bucket_items_downloaded_count = {}
         self.container_uploaded_count = 0
-        self.container_items_uploaded_count = {}
+        self.container_items_upload_count = {}
 
     def _create_container(self, name):
         return self.blob_storage.create_container(container_name=name, public_access=AzureBlobStorage.PUBLIC_ACCESS_BLOB)
@@ -95,7 +95,7 @@ class ToAzureFromAWS(object):
         except KeyError:
             pass
         try:
-            if  self._container_item_upload_progress[container.name].n >= 100:
+            if  self._container_item_upload_progress[container.name].n >= self.container_items_upload_count[container.name]:
                 self._container_upload_progress.update(1)
         except KeyError:
             pass
@@ -123,6 +123,7 @@ class ToAzureFromAWS(object):
         if self.blob_storage.service.exists(container_name=container_name):
             self._bucket_item_download_progress[bucket.name] = trange(len(items), desc="%s Item Download"%(bucket.name))
             self._container_item_upload_progress[container_name] = trange(len(items), desc="%s Items Copied"%(container_name))
+            self.container_items_upload_count[container_name] = len(items)
             container = AzureContainer(name=container_name, blob_storage=self.blob_storage)
             for item in items:
                 if not container.blob_exists(name=item.key):
