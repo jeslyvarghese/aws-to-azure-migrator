@@ -141,6 +141,13 @@ class ToAzureFromAWS(object):
             
     def _copy_item_from_bucket_to_system(self, item, save_path):
         filepath = "%s/%s" % (save_path, item.key)
+        # check if item key have folders composed, if so created them as well
+        dir_names = os.path.dirname(item.key)
+        if len(dir_names) > 0:
+            try:
+                os.makedirs(dir_names)
+            except OSError:
+                pass
         logger.info({"operation": "downloading item from bucket", "status": "started", "item-key": item.key, "bucket-name": item.bucket.name})
         item.download(filepath=filepath)
         logger.info({"operation": "downloading item from bucket", "status": "success", "item-key": item.key, "bucket-name": item.bucket.name})
