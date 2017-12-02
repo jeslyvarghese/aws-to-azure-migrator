@@ -48,7 +48,7 @@ class ToAzureFromAWS(object):
         self.num_of_containers_copied = 0
         self._bucket_download_progress = None
         self._bucket_item_download_progress = {}
-        self._container_upload_progress = {}
+        self._container_upload_progress = None
         self._container_item_upload_progress = {}
         self.bucket_count = 0
         self.buckets_downloaded_count = 0
@@ -96,7 +96,8 @@ class ToAzureFromAWS(object):
             pass
         try:
             if  self._container_item_upload_progress[container.name].n >= self.container_items_upload_count[container.name]:
-                self._container_upload_progress.update(1)
+                if self._container_upload_progress is not None:
+                    self._container_upload_progress.update(1)
         except KeyError:
             pass
         os.remove(filepath)
@@ -129,6 +130,11 @@ class ToAzureFromAWS(object):
                 if not container.blob_exists(name=item.key):
                     self._copy_item_from_bucket_to_system(item=item,
                                                           save_path=container_save_path)
+                else:
+                    self._container_item_upload_progress[container_name].update(1)
+                    if self._container_item_upload_progress[container_name].n >= self.container_items_upload_count[container_name]:
+                        if self._container_upload_progress is not None:
+                            self._container_upload_progress.update(1)
                 self._bucket_item_download_progress[bucket.name].update(1)
         else:
             raise AzureContainerNotCreatedException()

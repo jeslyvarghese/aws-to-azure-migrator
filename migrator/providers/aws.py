@@ -52,7 +52,7 @@ class Bucket(object):
         is_list_truncated = list_response['IsTruncated']
         contents = list_response.get('Contents', [])
         if is_list_truncated:
-            next_marker = list_response['NextMarker']
+            next_marker = list_response.get('NextMarker', None)
             while next_marker is not None:
                 list_response = self.s3.client.list_objects(Bucket=self.name, Marker=next_marker)
                 next_marker = list_response['NextMarker']
