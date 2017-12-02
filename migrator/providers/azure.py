@@ -16,6 +16,9 @@ class AzureBlobStorage(object):
     def create_container(self, container_name, public_access):
         if not self.service.create_container(container_name, public_access=public_access):
             raise AzureContainerCreationFailedException()
+    
+    def container_exists(self, container_name):
+        return self.service.exists(container_name=container_name)
 
 class AzureContainer(object):
     def __init__(self, name, blob_storage):
@@ -30,3 +33,6 @@ class AzureContainer(object):
                                                    blob_name=os.path.basename(filepath),
                                                    file_path=filepath,
                                                    progress_callback=progress_callback)
+    
+    def blob_exists(self, name):
+        return self.storage.service.exists(container_name=self.name, blob_name=name)

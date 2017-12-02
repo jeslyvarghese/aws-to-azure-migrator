@@ -1,7 +1,7 @@
 from azure import storage
-from migrations.azure import ToAzureFromAWS
-from providers.aws import Bucket
-from providers.aws import BucketObject
+from migrator.migrations.azure import ToAzureFromAWS
+from migrator.providers.aws import Bucket
+from migrator.providers.aws import BucketObject
 
 import unittest
 import time

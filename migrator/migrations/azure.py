@@ -80,7 +80,8 @@ class ToAzureFromAWS(object):
         try:
             container_name = self._translate_to_azure_friendly_name(name=bucket.name)
             self.buckets_to_container_translation[bucket.name] = container_name
-            self.blob_storage.create_container(container_name=container_name,
+            if not self.blob_storage.container_exists(container_name=container_name):
+                self.blob_storage.create_container(container_name=container_name,
                                                public_access=AzureBlobStorage.PUBLIC_ACCESS_BLOB)
             self.buckets_copied.append(bucket)
         except AzureContainerCreationFailedException as e:
@@ -95,7 +96,7 @@ class ToAzureFromAWS(object):
             pass
         try:
             if  self._container_item_upload_progress[container.name].n >= 100:
-                self._container_upload_progress[container.name].update(1)
+                self._container_upload_progress.update(1)
         except KeyError:
             pass
         os.remove(filepath)
@@ -122,9 +123,11 @@ class ToAzureFromAWS(object):
         if self.blob_storage.service.exists(container_name=container_name):
             self._bucket_item_download_progress[bucket.name] = trange(len(items), desc="%s Item Download"%(bucket.name))
             self._container_item_upload_progress[container_name] = trange(len(items), desc="%s Items Copied"%(container_name))
+            container = AzureContainer(name=container_name, blob_storage=self.blob_storage)
             for item in items:
-                self._copy_item_from_bucket_to_system(item=item,
-                                                      save_path=container_save_path)
+                if not container.blob_exists(name=item.key):
+                    self._copy_item_from_bucket_to_system(item=item,
+                                                          save_path=container_save_path)
                 self._bucket_item_download_progress[bucket.name].update(1)
         else:
             raise AzureContainerNotCreatedException()

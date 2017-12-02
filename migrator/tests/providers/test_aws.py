@@ -1,9 +1,9 @@
 from boto3 import s3
-from providers.aws import Boto3Session
-from providers.aws import S3
-from providers.aws import Bucket
-from providers.aws import BucketOwner
-from providers.aws import BucketObject
+from migrator.providers.aws import Boto3Session
+from migrator.providers.aws import S3
+from migrator.providers.aws import Bucket
+from migrator.providers.aws import BucketOwner
+from migrator.providers.aws import BucketObject
 
 import unittest
 import os

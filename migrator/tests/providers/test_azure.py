@@ -1,6 +1,6 @@
 from azure import storage
-from providers.azure import AzureBlobStorage
-from providers.azure import AzureContainer
+from migrator.providers.azure import AzureBlobStorage
+from migrator.providers.azure import AzureContainer
 import unittest
 import os
 import time
@@ -18,6 +18,12 @@ class TestAzureBlobStorage(unittest.TestCase, TestAttributes):
             storage_account_name=self.account_name,
             storage_key=self.storage_key
         )
+    def test_container_exists(self):
+        self.blob_storage.create_container(container_name=self.container_name, public_access=AzureBlobStorage.PUBLIC_ACCESS_CONTAINER)
+        time.sleep(10)
+        self.assertTrue(self.blob_storage.container_exists(container_name=self.container_name))
+        self.blob_storage.service.delete_container(container_name=self.container_name)
+
     def test_create_container(self):
         self.blob_storage.create_container(
             container_name = self.container_name,
@@ -51,6 +57,12 @@ class TestAzureContainer(unittest.TestCase, TestAttributes):
         time.sleep(10)
         file_exists = self.blob_storage.service.exists(container_name=self.container_name, blob_name=os.path.basename(self.filepath))
         self.assertTrue(file_exists)
+
+    def test_blob_exists(self):
+        container = AzureContainer(name=self.container_name, blob_storage=self.blob_storage)
+        container.create_blob_from_filepath(filepath=self.filepath)
+        time.sleep(10)
+        self.assertTrue(container.blob_exists(name=os.path.basename(self.filepath)))
 
     def tearDown(self):
         self.blob_storage.service.delete_container(container_name=self.container_name)
