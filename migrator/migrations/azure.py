@@ -145,7 +145,7 @@ class ToAzureFromAWS(object):
         dir_names = os.path.dirname(item.key)
         if len(dir_names) > 0:
             try:
-                os.makedirs(dir_names)
+                os.makedirs("%s/%s"%(save_path, dir_names))
             except OSError:
                 pass
         logger.info({"operation": "downloading item from bucket", "status": "started", "item-key": item.key, "bucket-name": item.bucket.name})
