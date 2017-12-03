@@ -28,9 +28,10 @@ class AzureContainer(object):
     def list_blobs(self):
         return self.storage.service.list_blobs(self.name)
     
-    def create_blob_from_filepath(self, filepath, progress_callback=None):
+    def create_blob_from_filepath(self, filepath, blob_name=None, progress_callback=None):
+        blob_name = os.path.basename(filepath) if blob_name is None else blob_name
         self.storage.service.create_blob_from_path(container_name=self.name,
-                                                   blob_name=os.path.basename(filepath),
+                                                   blob_name=blob_name,
                                                    file_path=filepath,
                                                    progress_callback=progress_callback)
     
