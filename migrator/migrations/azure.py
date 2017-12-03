@@ -107,6 +107,7 @@ class ToAzureFromAWS(object):
         container = AzureContainer(name=container_name, blob_storage=self.blob_storage)
         logger.info({"operation": "uploading to container", "status": "started", "filepath": filepath, "bucket-name": bucket_item.bucket.name, "item-key": bucket_item.key, "container-name": container_name})
         container.create_blob_from_filepath(filepath=filepath,
+                                            blob_name=bucket_item.key,
                                             progress_callback=AzureBlobUploadProgress(filepath=filepath,
                                                                                       container=container,
                                                                                       finish_callback=self._finished_copying_to_container))
