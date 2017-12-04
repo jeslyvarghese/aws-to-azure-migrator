@@ -48,14 +48,14 @@ class Bucket(object):
         self.owner = owner
     
     def list_objects(self):
-        list_response = self.s3.client.list_objects(Bucket=self.name)
+        list_response = self.s3.client.list_objects_v2(Bucket=self.name)
         is_list_truncated = list_response['IsTruncated']
         contents = list_response.get('Contents', [])
         if is_list_truncated:
-            next_marker = list_response.get('NextMarker', None)
+            next_marker = list_response.get('NextContinuationToken', None)
             while next_marker is not None:
-                list_response = self.s3.client.list_objects(Bucket=self.name, Marker=next_marker)
-                next_marker = list_response['NextMarker']
+                list_response = self.s3.client.list_objects(Bucket=self.name, ContinuationToken=next_marker)
+                next_marker = list_response.get('NextContinuationToken', None)
                 contents.append(list_response['Contents'])
         bucket_objects = []
         for item in contents:
