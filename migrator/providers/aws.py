@@ -56,7 +56,7 @@ class Bucket(object):
             while next_marker is not None:
                 list_response = self.s3.client.list_objects_v2(Bucket=self.name, ContinuationToken=next_marker)
                 next_marker = list_response.get('NextContinuationToken', None)
-                contents.append(list_response['Contents'])
+                contents = contents + list_response['Contents']
         bucket_objects = []
         for item in contents:
             bucket_objects.append(BucketObject(
