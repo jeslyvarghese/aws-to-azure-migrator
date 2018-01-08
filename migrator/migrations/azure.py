@@ -56,7 +56,8 @@ class ToAzureFromAWS(object):
         self.bucket_items_downloaded_count = {}
         self.container_uploaded_count = 0
         self.container_items_upload_count = {}
-
+        self.item_sync_threads = list()
+        
     def _create_container(self, name):
         return self.blob_storage.create_container(container_name=name, public_access=AzureBlobStorage.PUBLIC_ACCESS_BLOB)
 
@@ -87,32 +88,6 @@ class ToAzureFromAWS(object):
         except AzureContainerCreationFailedException as e:
             logger.error({"operation": "container creation", "status": "failed", "container-name": container_name, "bucket-name": bucket.name})
     
-    
-    def _finished_copying_to_container(self, filepath, container):
-        logger.info({"operation": "uploading to container", "status": "success", "filepath": filepath, "container-name": container.name})
-        try:
-            self._container_item_upload_progress[container.name].update(1)
-        except KeyError:
-            pass
-        try:
-            if  self._container_item_upload_progress[container.name].n >= self.container_items_upload_count[container.name]:
-                if self._container_upload_progress is not None:
-                    self._container_upload_progress.update(1)
-        except KeyError:
-            pass
-        os.remove(filepath)
-
-    def _copy_item_from_system_to_container(self, filepath, bucket_item):
-        container_name = self.buckets_to_container_translation[bucket_item.bucket.name]
-        container = AzureContainer(name=container_name, blob_storage=self.blob_storage)
-        logger.info({"operation": "uploading to container", "status": "started", "filepath": filepath, "bucket-name": bucket_item.bucket.name, "item-key": bucket_item.key, "container-name": container_name})
-        container.create_blob_from_filepath(filepath=filepath,
-                                            blob_name=bucket_item.key,
-                                            progress_callback=AzureBlobUploadProgress(filepath=filepath,
-                                                                                      container=container,
-                                                                                      finish_callback=self._finished_copying_to_container))
-
-
     def _copy_items_from_bucket_to_system(self, bucket):
         items = bucket.list_objects()
         
@@ -129,30 +104,20 @@ class ToAzureFromAWS(object):
             container = AzureContainer(name=container_name, blob_storage=self.blob_storage)
             for item in items:
                 if not container.blob_exists(name=item.key):
-                    self._copy_item_from_bucket_to_system(item=item,
-                                                          save_path=container_save_path)
+                    item_sync = ItemSyncer(item=item, container_save_path=container_save_path, migrator=self)
+                    item_sync.start()
+                    self.item_sync_threads.append(item_sync)
                 else:
                     self._container_item_upload_progress[container_name].update(1)
                     if self._container_item_upload_progress[container_name].n >= self.container_items_upload_count[container_name]:
                         if self._container_upload_progress is not None:
                             self._container_upload_progress.update(1)
                 self._bucket_item_download_progress[bucket.name].update(1)
+            for t in self.item_sync_threads:
+                t.join()
         else:
             raise AzureContainerNotCreatedException()
             
-    def _copy_item_from_bucket_to_system(self, item, save_path):
-        filepath = "%s/%s" % (save_path, item.key)
-        # check if item key have folders composed, if so created them as well
-        dir_names = os.path.dirname(item.key)
-        if len(dir_names) > 0:
-            try:
-                os.makedirs("%s/%s"%(save_path, dir_names))
-            except OSError:
-                pass
-        logger.info({"operation": "downloading item from bucket", "status": "started", "item-key": item.key, "bucket-name": item.bucket.name})
-        item.download(filepath=filepath)
-        logger.info({"operation": "downloading item from bucket", "status": "success", "item-key": item.key, "bucket-name": item.bucket.name})
-        self._copy_item_from_system_to_container(filepath=filepath, bucket_item=item)
 
     def _move_to_azure(self):
         buckets = self.get_s3_buckets()
@@ -170,6 +135,56 @@ class ToAzureFromAWS(object):
     def migrate(self):
         self._move_to_azure()
 
+class ItemSyncer(threading.Thread):
+    def __init__(self, item, container_save_path, migrator):
+        super(ItemSyncer, self).__init__()
+        self.item = item
+        self.container_save_path = container_save_path
+        self.migrator = migrator
+        return
+
+    def run(self):
+        self._copy_item_from_bucket_to_system(item=self.item, save_path=self.container_save_path)
+        return
+    
+    def _copy_item_from_bucket_to_system(self, item, save_path):
+        filepath = "%s/%s" % (save_path, item.key)
+        # check if item key have folders composed, if so created them as well
+        dir_names = os.path.dirname(item.key)
+        if len(dir_names) > 0:
+            try:
+                os.makedirs("%s/%s"%(save_path, dir_names))
+            except OSError:
+                pass
+        logger.info({"operation": "downloading item from bucket", "status": "started", "item-key": item.key, "bucket-name": item.bucket.name})
+        item.download(filepath=filepath)
+        logger.info({"operation": "downloading item from bucket", "status": "success", "item-key": item.key, "bucket-name": item.bucket.name})
+        self._copy_item_from_system_to_container(filepath=filepath, bucket_item=item)
+
+    def _copy_item_from_system_to_container(self, filepath, bucket_item):
+        container_name = self.migrator.buckets_to_container_translation[bucket_item.bucket.name]
+        container = AzureContainer(name=container_name, blob_storage=self.migrator.blob_storage)
+        logger.info({"operation": "uploading to container", "status": "started", "filepath": filepath, "bucket-name": bucket_item.bucket.name, "item-key": bucket_item.key, "container-name": container_name})
+        container.create_blob_from_filepath(filepath=filepath,
+                                            blob_name=bucket_item.key,
+                                            progress_callback=AzureBlobUploadProgress(filepath=filepath,
+                                                                                      container=container,
+                                                                                      finish_callback=self._finished_copying_to_container))
+    def _finished_copying_to_container(self, filepath, container):
+        logger.info({"operation": "uploading to container", "status": "success", "filepath": filepath, "container-name": container.name})
+        try:
+            self.migrator._container_item_upload_progress[container.name].update(1)
+        except KeyError:
+            pass
+        try:
+            if  self.migrator._container_item_upload_progress[container.name].n >= self.migrator.container_items_upload_count[container.name]:
+                if self.migrator._container_upload_progress is not None:
+                    self.migrator._container_upload_progress.update(1)
+        except KeyError:
+            pass
+        os.remove(filepath)
+
+        
 class AzureContainerNotCreatedException(Exception):
     pass
 class S3BucketObjectNotCopiedException(Exception):

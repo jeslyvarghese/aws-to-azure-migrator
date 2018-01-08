@@ -66,52 +66,6 @@ class TestToAzureFromAWS(unittest.TestCase, TestAttributes):
             self.assertTrue(container_exists)
             self.aws_to_azure.blob_storage.service.delete_container(container_name=container_name)
 
-    def test__copy_item_from_bucket_to_system(self):
-        bucket = Bucket(s3=self.aws_to_azure.s3,
-                        name='migrator-test-bucket-with-objects')
-        item = BucketObject(bucket=bucket, key='emacs-stupid-tutorial')
-        save_path = '/tmp'
-        self.aws_to_azure._copy_bucket_from_s3_to_azure(bucket=bucket)
-        time.sleep(10)
-        self.aws_to_azure._copy_item_from_bucket_to_system(item=item, save_path=save_path)
-        time.sleep(10)
-        filepath = "%s/%s" % (save_path, item.key)
-        self.assertTrue(os.path.isfile(filepath))
-        self.aws_to_azure.blob_storage.service.delete_container(container_name=bucket.name)
-
-    def test_copy_items_from_bucket_to_system(self):
-        bucket = Bucket(s3=self.aws_to_azure.s3,
-                        name='migrator-test-bucket-with-objects')
-        bucket_items = bucket.list_objects()
-        self.aws_to_azure._copy_bucket_from_s3_to_azure(bucket=bucket)
-        time.sleep(10)
-        self.aws_to_azure._copy_items_from_bucket_to_system(bucket=bucket)
-        for bucket_item in bucket_items:
-            item_exists = self.aws_to_azure.blob_storage.service.exists(container_name=bucket.name,
-                                                          blob_name=bucket_item.key)
-            self.assertTrue(item_exists)
-        self.aws_to_azure.blob_storage.service.delete_container(container_name=bucket.name)
-
-    def test__copy_item_from_system_to_container(self):
-        # create a dummy file in the syste
-        # we check if the file exist on the container
-        # and it got deleted from the system as the test
-        filepath = "/tmp/testfile.txt"
-        file = open(filepath, "w")
-        file.write("Sample File")
-        file.close()
-        bucket = Bucket(s3=None, name='testcontainer')
-        bucket_item = BucketObject(bucket=bucket, key='testfile.txt')
-        self.aws_to_azure._copy_bucket_from_s3_to_azure(bucket=bucket)
-        time.sleep(10)
-        self.aws_to_azure._copy_item_from_system_to_container(filepath=filepath,
-                                                              bucket_item=bucket_item)
-        time.sleep(10)
-        item_exists = self.aws_to_azure.blob_storage.service.exists(container_name=bucket.name, blob_name=os.path.basename(filepath))
-        self.assertTrue(item_exists)
-        self.assertFalse(os.path.isfile(filepath))
-        self.aws_to_azure.blob_storage.service.delete_container(container_name=bucket.name)
-
     def test__finished_copying_to_container(self):
         pass
     

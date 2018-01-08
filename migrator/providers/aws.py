@@ -86,6 +86,6 @@ class BucketObject(object):
         self.storage_class=storage_class
         self.owner = owner
 
-    def download(self, filepath, callback=None):
-        transfer_config = TransferConfig(use_threads=False)
+    def download(self, filepath, callback=None, use_threads=False):
+        transfer_config = TransferConfig(use_threads=use_threads)
         self.bucket.s3.client.download_file(Bucket=self.bucket.name, Key=self.key, Filename=filepath, Callback=callback, Config=transfer_config)
