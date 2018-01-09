@@ -9,10 +9,12 @@ from migrator.migrations.azure import ToAzureFromAWS
 @click.option('--aws-region-name', default='us-west-2', help='AWS Authentication Region Defaults us-west-2')
 @click.option('--aws-access-key', default=None, help='AWS Access Key (Required)')
 @click.option('--aws-secret-key', default=None, help='AWS Secret Key (Required)')
-def run(azure_storage_account, azure_storage_key, aws_region_name, aws_access_key, aws_secret_key):
+@click.option('--thread-count', default=100, help='Number of threads to run while downloading the content. Defaults to 100')
+def run(azure_storage_account, azure_storage_key, aws_region_name, aws_access_key, aws_secret_key, thread_count):
     ToAzureFromAWS(azure_storage_account_name=azure_storage_account,
                    azure_storage_key=azure_storage_key,
                    aws_region_name=aws_region_name,
                    aws_access_key=aws_access_key,
-                   aws_secret_key=aws_secret_key).migrate()
+                   aws_secret_key=aws_secret_key,
+                   thread_count=int(thread_count)).migrate()
 
