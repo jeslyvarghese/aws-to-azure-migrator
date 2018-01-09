@@ -35,7 +35,8 @@ class ToAzureFromAWS(object):
             azure_storage_key,
             aws_region_name,
             aws_access_key,
-            aws_secret_key):
+            aws_secret_key,
+            thread_count=100):
         self.blob_storage = AzureBlobStorage(storage_account_name=azure_storage_account_name,
                                              storage_key=azure_storage_key)
         self.s3 = S3(session=Boto3Session(region_name=aws_region_name,
@@ -57,11 +58,11 @@ class ToAzureFromAWS(object):
         self.container_uploaded_count = 0
         self.container_items_upload_count = {}
         self.item_sync_threads = list()
-        
+        self.max_thread_count = thread_count
+
     def _create_container(self, name):
         return self.blob_storage.create_container(container_name=name, public_access=AzureBlobStorage.PUBLIC_ACCESS_BLOB)
 
-    
     def get_s3_buckets(self):
         return self.s3.list_buckets()
     
@@ -107,7 +108,7 @@ class ToAzureFromAWS(object):
                     item_sync = ItemSyncer(item=item, container_save_path=container_save_path, migrator=self)
                     item_sync.start()
                     self.item_sync_threads.append(item_sync)
-                    if len(self.item_sync_threads) >= 5:
+                    if len(self.item_sync_threads) >= self.max_thread_count:
                         for t in self.item_sync_threads:
                             t.join()
                         self.item_sync_threads = list()
