@@ -107,6 +107,10 @@ class ToAzureFromAWS(object):
                     item_sync = ItemSyncer(item=item, container_save_path=container_save_path, migrator=self)
                     item_sync.start()
                     self.item_sync_threads.append(item_sync)
+                    if len(self.item_sync_threads) >= 5:
+                        for t in self.item_sync_threads:
+                            t.join()
+                        self.item_sync_threads = list()
                 else:
                     self._container_item_upload_progress[container_name].update(1)
                     if self._container_item_upload_progress[container_name].n >= self.container_items_upload_count[container_name]:
@@ -115,6 +119,7 @@ class ToAzureFromAWS(object):
                 self._bucket_item_download_progress[bucket.name].update(1)
             for t in self.item_sync_threads:
                 t.join()
+                self.item_sync_threads = list()
         else:
             raise AzureContainerNotCreatedException()
             
