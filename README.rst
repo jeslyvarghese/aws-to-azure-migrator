@@ -18,6 +18,7 @@ Installation
 ============
 
 pip::
+  
    pip install  git+https://github.com/jeslyvarghese/aws-to-azure-migrator.git
 
 
